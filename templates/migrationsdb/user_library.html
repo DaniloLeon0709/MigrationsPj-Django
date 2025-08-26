@@ -1,0 +1,60 @@
+{% extends 'migrationsdb/base.html' %}
+
+{% block title %}Biblioteca de {{ user.first_name }} - Biblioteca Personal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-book-half"></i> Biblioteca de {{ user.first_name }} {{ user.last_name }}
+        <span class="badge bg-secondary">{{ user.books.count }}</span>
+    </h2>
+    <div>
+        <a href="{% url 'add_books_to_library' user.id %}" class="btn btn-success me-2">
+            <i class="bi bi-plus-square"></i> Agregar Libros
+        </a>
+        {% if user.books.all %}
+        <a href="{% url 'remove_books_from_library' user.id %}" class="btn btn-danger me-2">
+            <i class="bi bi-dash-square"></i> Quitar Libros
+        </a>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+{% if user.books.all %}
+    <div class="row">
+        {% for book in user.books.all %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ book.title }}</h5>
+                        <p class="card-text">
+                            <strong>Autor:</strong> {{ book.author.first_name }} {{ book.author.last_name }}<br>
+                            <strong>Páginas:</strong> {{ book.pages }}<br>
+                            <strong>Publicado:</strong> {{ book.published_date }}
+                        </p>
+                        {% if book.genres.all %}
+                            <div class="mb-2">
+                                {% for genre in book.genres.all %}
+                                    <span class="badge bg-outline-primary me-1">{{ genre.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-book display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Biblioteca vacía</h3>
+        <p class="text-muted">{{ user.first_name }} aún no tiene libros en su biblioteca.</p>
+        <a href="{% url 'add_books_to_library' user.id %}" class="btn btn-primary">
+            <i class="bi bi-plus-square"></i> Agregar Primeros Libros
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

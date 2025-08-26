@@ -1,49 +1,38 @@
 {% extends 'migrationsdb/base.html' %}
 
-{% block title %}Usuarios - Biblioteca Personal{% endblock %}
+{% block title %}Lista de Libros - Biblioteca Personal{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary">
-        <i class="bi bi-people"></i> Lista de Usuarios
-        <span class="badge bg-secondary">{{ users.count }}</span>
+        <i class="bi bi-book"></i> Lista de Libros
+        <span class="badge bg-secondary">{{ books.count }}</span>
     </h2>
-    <a href="{% url 'create_user' %}" class="btn btn-success">
-        <i class="bi bi-person-plus"></i> Agregar Usuario
+    <a href="{% url 'create_book' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Agregar Libro
     </a>
 </div>
 
-{% if users %}
+{% if books %}
     <div class="row">
-        {% for user in users %}
+        {% for book in books %}
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title text-primary">{{ user.first_name }} {{ user.last_name }}</h5>
+                            <h5 class="card-title text-primary mb-1">{{ book.title }}</h5>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'user_library' user.id %}">
-                                            <i class="bi bi-book-half"></i> Ver Biblioteca
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'add_books_to_library' user.id %}">
-                                            <i class="bi bi-plus-square"></i> Agregar Libros
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'update_user' user.id %}">
+                                        <a class="dropdown-item" href="{% url 'update_book' book.id %}">
                                             <i class="bi bi-pencil"></i> Editar
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ user.first_name }} {{ user.last_name }}', '{% url 'delete_user' user.id %}')">
+                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ book.title }}', '{% url 'delete_book' book.id %}')">
                                             <i class="bi bi-trash"></i> Eliminar
                                         </a>
                                     </li>
@@ -52,18 +41,34 @@
                         </div>
                         
                         <p class="card-text">
-                            <i class="bi bi-envelope"></i> {{ user.email }}<br>
-                            <i class="bi bi-person-badge"></i> {{ user.age }} años
+                            <strong>Autor:</strong> 
+                            <span class="text-muted">{{ book.author.first_name }} {{ book.author.last_name }}</span>
                         </p>
                         
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info">
-                                <i class="bi bi-book"></i> {{ user.books.count }} libro{{ user.books.count|pluralize }}
-                            </span>
+                        <p class="card-text">
+                            <strong>Propietario:</strong> 
+                            <span class="text-info">{{ book.owner.first_name }} {{ book.owner.last_name }}</span>
+                        </p>
+                        
+                        <div class="mb-2">
                             <small class="text-muted">
-                                {{ user.created_at|date:"d/m/Y" }}
+                                <strong>ISBN:</strong> {{ book.isbn }}<br>
+                                <strong>Páginas:</strong> {{ book.pages }}<br>
+                                <strong>Publicado:</strong> {{ book.published_date }}
                             </small>
                         </div>
+                        
+                        {% if book.genres.all %}
+                            <div class="mb-2">
+                                {% for genre in book.genres.all %}
+                                    <span class="badge bg-outline-primary me-1">{{ genre.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-plus"></i> {{ book.created_at|date:"d/m/Y H:i" }}
+                        </small>
                     </div>
                 </div>
             </div>
@@ -71,16 +76,16 @@
     </div>
 {% else %}
     <div class="text-center py-5">
-        <i class="bi bi-people display-1 text-muted"></i>
-        <h3 class="text-muted mt-3">No hay usuarios registrados</h3>
-        <p class="text-muted">Comienza agregando el primer usuario.</p>
-        <a href="{% url 'create_user' %}" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Agregar Primer Usuario
+        <i class="bi bi-book display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">No hay libros registrados</h3>
+        <p class="text-muted">Comienza agregando tu primer libro.</p>
+        <a href="{% url 'create_book' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Agregar Primer Libro
         </a>
     </div>
 {% endif %}
 
-<!-- Modal de confirmación -->
+<!-- Modal de confirmación de eliminación -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -89,7 +94,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Estás seguro de que deseas eliminar a "<span id="userName"></span>"?
+                ¿Estás seguro de que deseas eliminar el libro "<span id="bookTitle"></span>"?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -102,8 +107,8 @@
 
 {% block extra_js %}
 <script>
-function confirmDelete(userName, deleteUrl) {
-    document.getElementById('userName').textContent = userName;
+function confirmDelete(bookTitle, deleteUrl) {
+    document.getElementById('bookTitle').textContent = bookTitle;
     document.getElementById('confirmDeleteBtn').href = deleteUrl;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }

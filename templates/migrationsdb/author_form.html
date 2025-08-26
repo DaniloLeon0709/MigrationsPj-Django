@@ -1,7 +1,7 @@
 {% extends 'migrationsdb/base.html' %}
 
 {% block title %}
-    {% if user %}Editar Usuario{% else %}Nuevo Usuario{% endif %} - Biblioteca Personal
+    {% if author %}Editar Autor{% else %}Nuevo Autor{% endif %} - Biblioteca Personal
 {% endblock %}
 
 {% block content %}
@@ -10,16 +10,16 @@
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">
-                    <i class="bi bi-person"></i>
-                    {% if user %}Editar Usuario{% else %}Agregar Nuevo Usuario{% endif %}
+                    <i class="bi bi-person-workspace"></i>
+                    {% if author %}Editar Autor{% else %}Agregar Nuevo Autor{% endif %}
                 </h4>
             </div>
             <div class="card-body">
                 <form method="post" novalidate>
                     {% csrf_token %}
-
+                    
                     <div class="row">
-                        <!-- Primer Nombre -->
+                        <!-- Nombre -->
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.first_name.id_for_label }}" class="form-label">
                                 <i class="bi bi-person"></i> {{ form.first_name.label }}
@@ -49,30 +49,30 @@
                     </div>
 
                     <div class="row">
-                        <!-- Edad -->
+                        <!-- Fecha de nacimiento -->
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.age.id_for_label }}" class="form-label">
-                                <i class="bi bi-calendar-check"></i> {{ form.age.label }}
-                                {% if form.age.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.birth_date.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar-date"></i> {{ form.birth_date.label }}
+                                {% if form.birth_date.field.required %}<span class="text-danger">*</span>{% endif %}
                             </label>
-                            {{ form.age }}
-                            {% if form.age.errors %}
+                            {{ form.birth_date }}
+                            {% if form.birth_date.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.age.errors.0 }}
+                                    {{ form.birth_date.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
 
-                        <!-- Email -->
+                        <!-- Nacionalidad -->
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                <i class="bi bi-envelope"></i> {{ form.email.label }}
-                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                            <label for="{{ form.nationality.id_for_label }}" class="form-label">
+                                <i class="bi bi-globe"></i> {{ form.nationality.label }}
+                                {% if form.nationality.field.required %}<span class="text-danger">*</span>{% endif %}
                             </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
+                            {{ form.nationality }}
+                            {% if form.nationality.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.email.errors.0 }}
+                                    {{ form.nationality.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
@@ -85,20 +85,14 @@
                         </div>
                     {% endif %}
 
-                    <!-- Nota informativa -->
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        Los campos marcados con <span class="text-danger">*</span> son obligatorios.
-                    </div>
-
                     <!-- Botones -->
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'list_authors' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i>
-                            {% if user %}Actualizar{% else %}Crear{% endif %} Usuario
+                            {% if author %}Actualizar{% else %}Crear{% endif %} Autor
                         </button>
                     </div>
                 </form>
@@ -106,4 +100,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %}<

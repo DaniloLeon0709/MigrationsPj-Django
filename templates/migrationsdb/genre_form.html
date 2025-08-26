@@ -1,0 +1,74 @@
+{% extends 'migrationsdb/base.html' %}
+
+{% block title %}
+    {% if genre %}Editar Género{% else %}Nuevo Género{% endif %} - Biblioteca Personal
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-tags"></i>
+                    {% if genre %}Editar Género{% else %}Agregar Nuevo Género{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Nombre del género -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            <i class="bi bi-tag"></i> {{ form.name.label }}
+                            {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="bi bi-text-paragraph"></i> {{ form.description.label }}
+                            {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <small>Opcional: Breve descripción del género literario</small>
+                        </div>
+                    </div>
+
+                    <!-- Errores generales del formulario -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'list_genres' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            {% if genre %}Actualizar{% else %}Crear{% endif %} Género
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

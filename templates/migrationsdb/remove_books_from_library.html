@@ -1,0 +1,116 @@
+{% extends 'migrationsdb/base.html' %}
+
+{% block title %}Quitar Libros de Biblioteca de {{ user.first_name }} - Biblioteca Personal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-danger">
+        <i class="bi bi-dash-square"></i> Quitar Libros de la Biblioteca
+        <br><small class="text-muted">{{ user.first_name }} {{ user.last_name }}</small>
+    </h2>
+    <a href="{% url 'user_library' user.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver a Biblioteca
+    </a>
+</div>
+
+{% if user_books %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="mb-0">Selecciona los libros que deseas quitar de la biblioteca personal:</p>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAll()">
+                    <i class="bi bi-check-all"></i> Seleccionar Todo
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-1" onclick="clearAll()">
+                    <i class="bi bi-x-square"></i> Limpiar Todo
+                </button>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            {% for book in user_books %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input book-checkbox" type="checkbox" value="{{ book.id }}"
+                                       name="books" id="book{{ book.id }}">
+                                <label class="form-check-label w-100" for="book{{ book.id }}">
+                                    <h6 class="card-title text-primary mb-1">{{ book.title }}</h6>
+                                    <p class="card-text small mb-1">
+                                        <strong>Autor:</strong> {{ book.author.first_name }} {{ book.author.last_name }}<br>
+                                        <strong>Páginas:</strong> {{ book.pages }}<br>
+                                        <strong>ISBN:</strong> {{ book.isbn }}
+                                    </p>
+                                    {% if book.genres.all %}
+                                        <div>
+                                            {% for genre in book.genres.all %}
+                                                <span class="badge bg-light text-dark me-1">{{ genre.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <span id="selectedCount" class="text-muted">0 libros seleccionados</span>
+            <div>
+                <a href="{% url 'user_library' user.id %}" class="btn btn-secondary me-2">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" id="submitBtn" class="btn btn-danger" disabled>
+                    <i class="bi bi-dash-square"></i> Quitar Libros Seleccionados
+                </button>
+            </div>
+        </div>
+    </form>
+
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-book display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Biblioteca vacía</h3>
+        <p class="text-muted">{{ user.first_name }} no tiene libros en su biblioteca para quitar.</p>
+        <a href="{% url 'user_library' user.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Biblioteca
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.book-checkbox:checked');
+    const count = checkboxes.length;
+    document.getElementById('selectedCount').textContent = count + ' libro' + (count !== 1 ? 's' : '') + ' seleccionado' + (count !== 1 ? 's' : '');
+    document.getElementById('submitBtn').disabled = count === 0;
+}
+
+function selectAll() {
+    document.querySelectorAll('.book-checkbox').forEach(cb => {
+        cb.checked = true;
+    });
+    updateSelectedCount();
+}
+
+function clearAll() {
+    document.querySelectorAll('.book-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    updateSelectedCount();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.book-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    updateSelectedCount();
+});
+</script>
+{% endblock %}

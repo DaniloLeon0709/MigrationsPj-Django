@@ -1,49 +1,38 @@
 {% extends 'migrationsdb/base.html' %}
 
-{% block title %}Usuarios - Biblioteca Personal{% endblock %}
+{% block title %}Lista de Autores - Biblioteca Personal{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary">
-        <i class="bi bi-people"></i> Lista de Usuarios
-        <span class="badge bg-secondary">{{ users.count }}</span>
+        <i class="bi bi-person-workspace"></i> Lista de Autores
+        <span class="badge bg-secondary">{{ authors.count }}</span>
     </h2>
-    <a href="{% url 'create_user' %}" class="btn btn-success">
-        <i class="bi bi-person-plus"></i> Agregar Usuario
+    <a href="{% url 'create_author' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Agregar Autor
     </a>
 </div>
 
-{% if users %}
+{% if authors %}
     <div class="row">
-        {% for user in users %}
+        {% for author in authors %}
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title text-primary">{{ user.first_name }} {{ user.last_name }}</h5>
+                            <h5 class="card-title text-primary">{{ author.first_name }} {{ author.last_name }}</h5>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'user_library' user.id %}">
-                                            <i class="bi bi-book-half"></i> Ver Biblioteca
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'add_books_to_library' user.id %}">
-                                            <i class="bi bi-plus-square"></i> Agregar Libros
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'update_user' user.id %}">
+                                        <a class="dropdown-item" href="{% url 'update_author' author.id %}">
                                             <i class="bi bi-pencil"></i> Editar
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ user.first_name }} {{ user.last_name }}', '{% url 'delete_user' user.id %}')">
+                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ author.first_name }} {{ author.last_name }}', '{% url 'delete_author' author.id %}')">
                                             <i class="bi bi-trash"></i> Eliminar
                                         </a>
                                     </li>
@@ -52,16 +41,16 @@
                         </div>
                         
                         <p class="card-text">
-                            <i class="bi bi-envelope"></i> {{ user.email }}<br>
-                            <i class="bi bi-person-badge"></i> {{ user.age }} años
+                            <i class="bi bi-calendar"></i> <strong>Nacimiento:</strong> {{ author.birth_date }}<br>
+                            <i class="bi bi-globe"></i> <strong>Nacionalidad:</strong> {{ author.nationality }}
                         </p>
                         
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="badge bg-info">
-                                <i class="bi bi-book"></i> {{ user.books.count }} libro{{ user.books.count|pluralize }}
+                                <i class="bi bi-book"></i> {{ author.books.count }} libro{{ author.books.count|pluralize }}
                             </span>
                             <small class="text-muted">
-                                {{ user.created_at|date:"d/m/Y" }}
+                                {{ author.created_at|date:"d/m/Y" }}
                             </small>
                         </div>
                     </div>
@@ -71,11 +60,11 @@
     </div>
 {% else %}
     <div class="text-center py-5">
-        <i class="bi bi-people display-1 text-muted"></i>
-        <h3 class="text-muted mt-3">No hay usuarios registrados</h3>
-        <p class="text-muted">Comienza agregando el primer usuario.</p>
-        <a href="{% url 'create_user' %}" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Agregar Primer Usuario
+        <i class="bi bi-person-workspace display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">No hay autores registrados</h3>
+        <p class="text-muted">Comienza agregando el primer autor.</p>
+        <a href="{% url 'create_author' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Agregar Primer Autor
         </a>
     </div>
 {% endif %}
@@ -89,7 +78,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Estás seguro de que deseas eliminar a "<span id="userName"></span>"?
+                ¿Estás seguro de que deseas eliminar al autor "<span id="authorName"></span>"?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -102,8 +91,8 @@
 
 {% block extra_js %}
 <script>
-function confirmDelete(userName, deleteUrl) {
-    document.getElementById('userName').textContent = userName;
+function confirmDelete(authorName, deleteUrl) {
+    document.getElementById('authorName').textContent = authorName;
     document.getElementById('confirmDeleteBtn').href = deleteUrl;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }

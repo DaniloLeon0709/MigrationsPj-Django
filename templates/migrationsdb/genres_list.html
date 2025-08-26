@@ -1,0 +1,96 @@
+{% extends 'migrationsdb/base.html' %}
+
+{% block title %}Lista de Géneros - Biblioteca Personal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-tags"></i> Lista de Géneros
+        <span class="badge bg-secondary">{{ genres.count }}</span>
+    </h2>
+    <a href="{% url 'create_genre' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Agregar Género
+    </a>
+</div>
+
+{% if genres %}
+    <div class="row">
+        {% for genre in genres %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title text-primary">{{ genre.name }}</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'update_genre' genre.id %}">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ genre.name }}', '{% url 'delete_genre' genre.id %}')">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        {% if genre.description %}
+                            <p class="card-text text-muted">{{ genre.description|truncatewords:15 }}</p>
+                        {% else %}
+                            <p class="card-text text-muted fst-italic">Sin descripción</p>
+                        {% endif %}
+
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-plus"></i> {{ genre.created_at|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-tags display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">No hay géneros registrados</h3>
+        <p class="text-muted">Comienza agregando el primer género.</p>
+        <a href="{% url 'create_genre' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Agregar Primer Género
+        </a>
+    </div>
+{% endif %}
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar el género "<span id="genreName"></span>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(genreName, deleteUrl) {
+    document.getElementById('genreName').textContent = genreName;
+    document.getElementById('confirmDeleteBtn').href = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}
