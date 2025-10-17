@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'migrationspj',
     'migrationsdb',
     'rest_framework',
-    'widget_tweaks'
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -127,3 +127,21 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuraciones para firma digital
+DIGITAL_CERT_PATH = None
+PRIVATE_KEY_PATH = None
+CERT_PASSWORD = None
+
+ROOT_URLCONF='migrationspj.urls'
+
+# Configuraciones de autenticación
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+# Para manejar excepciones de permisos
+PERMISSION_DENIED_URL = '/login/'
+
+# Configuración de grupos por defecto
+DEFAULT_USER_GROUP = 'Lectores'

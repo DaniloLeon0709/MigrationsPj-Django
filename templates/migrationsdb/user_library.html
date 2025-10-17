@@ -9,6 +9,9 @@
         <span class="badge bg-secondary">{{ user.books.count }}</span>
     </h2>
     <div>
+        <a href="{% url 'user_library_pdf' user.id %}" class="btn btn-outline-danger me-2">
+            <i class="bi bi-file-pdf"></i> Descargar PDF
+        </a>
         <a href="{% url 'add_books_to_library' user.id %}" class="btn btn-success me-2">
             <i class="bi bi-plus-square"></i> Agregar Libros
         </a>

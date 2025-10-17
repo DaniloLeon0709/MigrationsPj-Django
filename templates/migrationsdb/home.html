@@ -1,111 +1,130 @@
 {% extends 'migrationsdb/base.html' %}
-
-{% block title %}Usuarios - Biblioteca Personal{% endblock %}
+{% block title %}Biblioteca Personal{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary">
-        <i class="bi bi-people"></i> Lista de Usuarios
-        <span class="badge bg-secondary">{{ users.count }}</span>
+        <i class="bi bi-house"></i> Usuarios Registrados
     </h2>
-    <a href="{% url 'create_user' %}" class="btn btn-success">
-        <i class="bi bi-person-plus"></i> Agregar Usuario
-    </a>
+    {% if perms.migrationsdb.add_user %}
+    <div class="btn-group">
+        <a href="{% url 'create_user' %}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Nuevo Usuario
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'setup_groups' %}" class="btn btn-outline-primary">
+            <i class="bi bi-shield-check"></i> Configurar Grupos
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
-{% if users %}
-    <div class="row">
-        {% for user in users %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title text-primary">{{ user.first_name }} {{ user.last_name }}</h5>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'user_library' user.id %}">
-                                            <i class="bi bi-book-half"></i> Ver Biblioteca
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'add_books_to_library' user.id %}">
-                                            <i class="bi bi-plus-square"></i> Agregar Libros
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'update_user' user.id %}">
-                                            <i class="bi bi-pencil"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ user.first_name }} {{ user.last_name }}', '{% url 'delete_user' user.id %}')">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <p class="card-text">
-                            <i class="bi bi-envelope"></i> {{ user.email }}<br>
-                            <i class="bi bi-person-badge"></i> {{ user.age }} años
-                        </p>
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info">
-                                <i class="bi bi-book"></i> {{ user.books.count }} libro{{ user.books.count|pluralize }}
-                            </span>
-                            <small class="text-muted">
-                                {{ user.created_at|date:"d/m/Y" }}
-                            </small>
-                        </div>
-                    </div>
+<div class="row">
+    {% for library_user in users %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-person-circle"></i>
+                    {{ library_user.first_name }} {{ library_user.last_name }}
+                </h5>
+                <p class="card-text text-muted">
+                    <small>
+                        <i class="bi bi-envelope"></i> {{ library_user.email|default:"Sin email" }}<br>
+                        <i class="bi bi-calendar"></i> {{ library_user.age }} años<br>
+                        <i class="bi bi-books"></i> {{ library_user.books.count }} libro(s)
+                    </small>
+                </p>
+
+                <!-- Mostrar grupos del usuario si tiene cuenta de acceso -->
+                {% if library_user.auth_user %}
+                <div class="mb-2">
+                    {% for group in library_user.auth_user.groups.all %}
+                        <span class="badge bg-primary">{{ group.name }}</span>
+                    {% endfor %}
+                    {% if not library_user.auth_user.groups.exists %}
+                        <span class="badge bg-secondary">Sin grupos</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="mb-2">
+                    <span class="badge bg-warning">Sin acceso al sistema</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="card-footer">
+                <div class="btn-group w-100" role="group">
+                    <a href="{% url 'user_library' library_user.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-book"></i> Biblioteca
+                    </a>
+
+                    {% if perms.migrationsdb.change_user %}
+                    <a href="{% url 'update_user' library_user.id %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    {% endif %}
+
+                    <!-- Botón de permisos para administradores -->
+                    {% if user.is_superuser and library_user.auth_user %}
+                        {% if library_user.auth_user %}
+                        <a href="{% url 'manage_user_permissions' library_user.id %}" class="btn btn-outline-info btn-sm" title="Gestionar permisos">
+                            <i class="bi bi-shield-lock"></i>
+                        </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if perms.migrationsdb.delete_user %}
+                    <a href="{% url 'delete_user' library_user.id %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-        {% endfor %}
+        </div>
     </div>
-{% else %}
-    <div class="text-center py-5">
-        <i class="bi bi-people display-1 text-muted"></i>
-        <h3 class="text-muted mt-3">No hay usuarios registrados</h3>
-        <p class="text-muted">Comienza agregando el primer usuario.</p>
-        <a href="{% url 'create_user' %}" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Agregar Primer Usuario
-        </a>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            No hay usuarios registrados aún.
+            {% if perms.migrationsdb.add_user %}
+                <a href="{% url 'create_user' %}" class="alert-link">Crear el primero</a>
+            {% endif %}
+        </div>
     </div>
-{% endif %}
+    {% endfor %}
+</div>
 
-<!-- Modal de confirmación -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Información adicional para administradores -->
+{% if user.is_superuser %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Información del Sistema
+                </h6>
             </div>
-            <div class="modal-body">
-                ¿Estás seguro de que deseas eliminar a "<span id="userName"></span>"?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Eliminar</a>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Total Usuarios:</strong> {{ users.count }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Con acceso:</strong> {{ auth_count }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Libros:</strong> {{ total_books|default:0 }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Grupos:</strong> {{ total_groups|default:0 }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function confirmDelete(userName, deleteUrl) {
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('confirmDeleteBtn').href = deleteUrl;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-</script>
+{% endif %}
 {% endblock %}

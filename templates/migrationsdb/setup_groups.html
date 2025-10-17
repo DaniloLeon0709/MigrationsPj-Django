@@ -1,0 +1,68 @@
+{% extends 'migrationsdb/base.html' %}
+{% block title %}Configurar Grupos - Biblioteca Personal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-shield-check"></i> Configuración de Grupos y Permisos
+    </h2>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear"></i> Configurar Grupos por Defecto
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Esta acción creará o actualizará los grupos por defecto del sistema con sus permisos correspondientes.
+                </p>
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary" onclick="return confirm('¿Deseas configurar los grupos por defecto? Esto puede sobrescribir permisos existentes.')">
+                        <i class="bi bi-plus-circle"></i> Configurar Grupos
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4>Grupos Existentes ({{ total_groups }})</h4>
+        {% for group in groups %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-people"></i> {{ group.name }}
+                    <span class="badge bg-secondary">{{ group.permissions.count }} permisos</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for permission in group.permissions.all %}
+                    <div class="col-md-6 col-lg-4">
+                        <span class="badge bg-light text-dark me-1 mb-1">
+                            {{ permission.name }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            No hay grupos configurados. Usa el botón de arriba para crear los grupos por defecto.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

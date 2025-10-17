@@ -1,96 +1,348 @@
 {% extends 'migrationsdb/base.html' %}
-
-{% block title %}Lista de Géneros - Biblioteca Personal{% endblock %}
+{% load widget_tweaks %}
+{% block title %}Géneros - Biblioteca Personal{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary">
-        <i class="bi bi-tags"></i> Lista de Géneros
-        <span class="badge bg-secondary">{{ genres.count }}</span>
+        <i class="bi bi-tags"></i> Géneros Literarios
     </h2>
-    <a href="{% url 'create_genre' %}" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Agregar Género
+    {% if perms.migrationsdb.add_genre %}
+    <a href="{% url 'create_genre' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nuevo Género
     </a>
+    {% endif %}
 </div>
 
-{% if genres %}
-    <div class="row">
-        {% for genre in genres %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title text-primary">{{ genre.name }}</h5>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'update_genre' genre.id %}">
-                                            <i class="bi bi-pencil"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ genre.name }}', '{% url 'delete_genre' genre.id %}')">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        {% if genre.description %}
-                            <p class="card-text text-muted">{{ genre.description|truncatewords:15 }}</p>
-                        {% else %}
-                            <p class="card-text text-muted fst-italic">Sin descripción</p>
-                        {% endif %}
-
-                        <small class="text-muted">
-                            <i class="bi bi-calendar-plus"></i> {{ genre.created_at|date:"d/m/Y" }}
-                        </small>
-                    </div>
-                </div>
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">Total Géneros</h6>
+                <h4>{{ total_genres }}</h4>
             </div>
-        {% endfor %}
+        </div>
     </div>
-{% else %}
-    <div class="text-center py-5">
-        <i class="bi bi-tags display-1 text-muted"></i>
-        <h3 class="text-muted mt-3">No hay géneros registrados</h3>
-        <p class="text-muted">Comienza agregando el primer género.</p>
-        <a href="{% url 'create_genre' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Agregar Primer Género
-        </a>
-    </div>
-{% endif %}
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                ¿Estás seguro de que deseas eliminar el género "<span id="genreName"></span>"?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Eliminar</a>
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <h6 class="card-title">Con Descripción</h6>
+                <h4>{{ genres_with_description }}</h4>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Lista de géneros -->
+<div class="row">
+    {% for genre in genres %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-tag"></i> {{ genre.name }}
+                </h5>
+                <p class="card-text text-muted">
+                    {% if genre.description %}
+                        {{ genre.description|truncatewords:15 }}
+                    {% else %}
+                        <em>Sin descripción</em>
+                    {% endif %}
+                </p>
+                <small class="text-muted">
+                    <i class="bi bi-calendar"></i> Creado: {{ genre.created_at|date:"d/m/Y" }}
+                </small>
+            </div>
+
+            <div class="card-footer">
+                <div class="btn-group w-100" role="group">
+                    {% if perms.migrationsdb.change_genre %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            onclick="editGenre({{ genre.id }}, '{{ genre.name|escapejs }}', '{{ genre.description|escapejs }}')">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    {% endif %}
+
+                    {% if perms.migrationsdb.delete_genre %}
+                    <a href="{% url 'delete_genre' genre.id %}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('¿Estás seguro de eliminar este género?')">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            No hay géneros registrados aún.
+            {% if perms.migrationsdb.add_genre %}
+                <a href="{% url 'create_genre' %}" class="alert-link">Crear el primero</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal para editar género -->
+{% if perms.migrationsdb.change_genre %}
+<div class="modal fade" id="editGenreModal" tabindex="-1" aria-labelledby="editGenreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editGenreModalLabel">
+                    <i class="bi bi-pencil"></i> Editar Género
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGenreForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="genreId" name="genre_id">
+
+                    <div class="mb-3">
+                        <label for="genreName" class="form-label">Nombre del Género</label>
+                        <input type="text" class="form-control" id="genreName" name="name" required maxlength="50">
+                        <div class="invalid-feedback" id="nameError"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="genreDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="genreDescription" name="description" rows="3"></textarea>
+                        <div class="invalid-feedback" id="descriptionError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveGenre()">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function confirmDelete(genreName, deleteUrl) {
-    document.getElementById('genreName').textContent = genreName;
-    document.getElementById('confirmDeleteBtn').href = deleteUrl;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+document.addEventListener('DOMContentLoaded', function() {
+    // Referencias a elementos del DOM
+    const editModal = document.getElementById('editGenreModal');
+    const editForm = document.getElementById('editGenreForm');
+    const editNameField = document.getElementById('editGenreName');
+    const editDescField = document.getElementById('editGenreDescription');
+    const editErrorDiv = document.getElementById('editGenreError');
+    const editSubmitButton = editForm.querySelector('button[type="submit"]');
+
+    // Función para mostrar errores
+    function showError(message) {
+        editErrorDiv.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+    }
+
+    // Función para limpiar errores
+    function clearError() {
+        editErrorDiv.innerHTML = '';
+    }
+
+    // Función para abrir modal de edición
+    window.editGenre = function(genreId, currentName, currentDescription) {
+    // Configurar valores en el modal
+    document.getElementById('genreId').value = genreId;
+    document.getElementById('genreName').value = currentName;
+    document.getElementById('genreDescription').value = currentDescription || '';
+
+    // Limpiar errores
+    clearFieldErrors();
+
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('editGenreModal'));
+    modal.show();
+};
+
+    // Manejar envío del formulario de edición
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearError();
+
+        // Deshabilitar botón mientras se procesa
+        editSubmitButton.disabled = true;
+        editSubmitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+        // Obtener datos del formulario
+        const formData = new FormData(editForm);
+
+        // Enviar petición AJAX
+        fetch(editForm.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cerrar modal
+                bootstrap.Modal.getInstance(editModal).hide();
+
+                // Mostrar mensaje de éxito
+                const alertContainer = document.getElementById('alertContainer');
+                if (alertContainer) {
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="bi bi-check-circle"></i> ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                }
+
+                // Actualizar la fila en la tabla
+                const row = document.querySelector(`tr[data-genre-id="${data.genre.id}"]`);
+                if (row) {
+                    const nameCell = row.querySelector('.genre-name');
+                    const descCell = row.querySelector('.genre-description');
+                    const editButton = row.querySelector('.edit-btn');
+
+                    if (nameCell) nameCell.textContent = data.genre.name;
+                    if (descCell) descCell.textContent = data.genre.description || 'Sin descripción';
+
+                    // Actualizar parámetros del botón de editar
+                    if (editButton) {
+                        editButton.setAttribute('onclick',
+                            `editGenre(${data.genre.id}, '${data.genre.name.replace(/'/g, "\\'")}', '${(data.genre.description || '').replace(/'/g, "\\'")}');`
+                        );
+                    }
+                }
+            } else {
+                // Mostrar errores del formulario
+                if (data.errors) {
+                    let errorMessages = '';
+                    for (const [field, messages] of Object.entries(data.errors)) {
+                        errorMessages += messages.join('<br>') + '<br>';
+                    }
+                    showError(errorMessages);
+                } else {
+                    showError(data.message || 'Error desconocido al actualizar el género');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Error de conexión. Por favor, intenta de nuevo.');
+        })
+        .finally(() => {
+            // Rehabilitar botón
+            editSubmitButton.disabled = false;
+            editSubmitButton.innerHTML = '<i class="bi bi-check-lg"></i> Guardar Cambios';
+        });
+    });
+
+    // Limpiar formulario al cerrar modal
+    editModal.addEventListener('hidden.bs.modal', function() {
+        editForm.reset();
+        clearError();
+    });
+
+    // Confirmar eliminaciones
+    const deleteLinks = document.querySelectorAll('a[href*="delete"]');
+    deleteLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este género? Esta acción no se puede deshacer.')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+
+    // Autocultar alertas después de 5 segundos
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
+        alerts.forEach(alert => {
+            if (alert.classList.contains('show')) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        });
+    }, 5000);
+
+    // Función para guardar cambios del género
+window.saveGenre = function() {
+    const form = document.getElementById('editGenreForm');
+    const genreId = document.getElementById('genreId').value;
+    const name = document.getElementById('genreName').value.trim();
+    const description = document.getElementById('genreDescription').value.trim();
+
+    // Limpiar errores previos
+    clearFieldErrors();
+
+    // Validaciones básicas
+    if (!name) {
+        showFieldError('genreName', 'El nombre es obligatorio');
+        return;
+    }
+
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+
+    // Enviar petición AJAX
+    fetch(`/api/genres/${genreId}/update/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cerrar modal y recargar página
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editGenreModal'));
+            modal.hide();
+
+            // Recargar la página para mostrar cambios
+            location.reload();
+        } else {
+            // Mostrar errores
+            if (data.errors) {
+                for (const [field, messages] of Object.entries(data.errors)) {
+                    showFieldError(field === 'name' ? 'genreName' : 'genreDescription', messages.join(', '));
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión. Por favor, intenta de nuevo.');
+    });
+};
+
+// Funciones auxiliares para manejo de errores
+function clearFieldErrors() {
+    document.getElementById('nameError').textContent = '';
+    document.getElementById('descriptionError').textContent = '';
+    document.getElementById('genreName').classList.remove('is-invalid');
+    document.getElementById('genreDescription').classList.remove('is-invalid');
 }
+
+function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorId = fieldId === 'genreName' ? 'nameError' : 'descriptionError';
+
+    field.classList.add('is-invalid');
+    document.getElementById(errorId).textContent = message;
+}
+});
 </script>
 {% endblock %}

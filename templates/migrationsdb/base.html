@@ -19,26 +19,92 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="bi bi-people"></i> Usuarios
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'list_authors' %}">
-                            <i class="bi bi-person-workspace"></i> Autores
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'list_genres' %}">
-                            <i class="bi bi-tags"></i> Géneros
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'list_book' %}">
-                            <i class="bi bi-book"></i> Libros
-                        </a>
-                    </li>
+                    {% if user.is_authenticated %}
+                        <!-- Enlaces según permisos del usuario -->
+                        {% if perms.migrationsdb.view_user %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'home' %}">
+                                    <i class="bi bi-people"></i> Usuarios
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.migrationsdb.view_author %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'list_authors' %}">
+                                    <i class="bi bi-person-workspace"></i> Autores
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.migrationsdb.view_genre %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'list_genres' %}">
+                                    <i class="bi bi-tags"></i> Géneros
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.migrationsdb.view_book %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'list_book' %}">
+                                    <i class="bi bi-book"></i> Libros
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <!-- Buscar en Open Library (disponible para usuarios autenticados) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'search_external_books' %}">
+                                <i class="bi bi-search"></i> Buscar Libros
+                            </a>
+                        </li>
+
+                        <!-- Menú de usuario -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">
+                                    <i class="bi bi-shield-check"></i>
+                                    Rol:
+                                    {% for group in user.groups.all %}
+                                        <span class="badge bg-secondary">{{ group.name }}</span>
+                                    {% empty %}
+                                        <span class="badge bg-light text-dark">Sin grupo</span>
+                                    {% endfor %}
+                                </h6></li>
+                                <li><hr class="dropdown-divider"></li>
+
+                                {% if user.is_superuser %}
+                                    <li><a class="dropdown-item" href="{% url 'setup_groups' %}">
+                                        <i class="bi bi-gear"></i> Configurar Grupos
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/" target="_blank">
+                                        <i class="bi bi-tools"></i> Administración
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <!-- Enlaces para usuarios no autenticados -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="bi bi-person-plus"></i> Registro
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -48,17 +114,73 @@
         <!-- Mensajes de Django -->
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    <strong>
+                        {% if message.tags == 'error' %}
+                            <i class="bi bi-exclamation-triangle"></i> Error:
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-triangle-fill"></i> Advertencia:
+                        {% elif message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill"></i> Éxito:
+                        {% else %}
+                            <i class="bi bi-info-circle"></i> Info:
+                        {% endif %}
+                    </strong> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endif %}
 
-        {% block content %}{% endblock %}
+        <!-- Mostrar información del usuario actual para debug -->
+        {% if user.is_authenticated and debug %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <small>
+                    <strong>Debug Info:</strong> Usuario: {{ user.username }} |
+                    Grupos: {% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% endfor %} |
+                    Superusuario: {{ user.is_superuser|yesno:"Sí,No" }}
+                </small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
+        <!-- Contenido principal -->
+        {% block content %}
+        {% endblock %}
+
     </div>
 
+    <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+
+    <!-- Scripts personalizados del bloque -->
+    {% block extra_js %}
+    {% endblock %}
+
+    <!-- Script global para confirmaciones de eliminación -->
+    <script>
+        // Confirmar eliminaciones
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteLinks = document.querySelectorAll('a[href*="delete"], button[data-action="delete"]');
+            deleteLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (!confirm('¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            });
+        });
+
+        // Ocultar mensajes después de 5 segundos
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
+            alerts.forEach(alert => {
+                if (alert.classList.contains('show')) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+    </script>
 </body>
 </html>

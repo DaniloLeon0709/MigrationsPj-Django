@@ -1,109 +1,151 @@
 {% extends 'migrationsdb/base.html' %}
 
 {% block title %}
-    {% if user %}Editar Usuario{% else %}Nuevo Usuario{% endif %} - Biblioteca Personal
+{% if user %}Actualizar Usuario - {{ user.first_name }}{% else %}Crear Nuevo Usuario{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">
-                    <i class="bi bi-person"></i>
-                    {% if user %}Editar Usuario{% else %}Agregar Nuevo Usuario{% endif %}
-                </h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary">
+        <i class="bi bi-person-plus"></i>
+        {% if user %}Actualizar Usuario{% else %}Crear Nuevo Usuario{% endif %}
+    </h2>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-circle"></i> Información Personal
+                </h5>
             </div>
             <div class="card-body">
-                <form method="post" novalidate>
-                    {% csrf_token %}
+                {% csrf_token %}
 
-                    <div class="row">
-                        <!-- Primer Nombre -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                <i class="bi bi-person"></i> {{ form.first_name.label }}
-                                {% if form.first_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.age.id_for_label }}" class="form-label">{{ form.age.label }}</label>
+                        {{ form.age }}
+                        {% if form.age.errors %}
+                            <div class="text-danger small">{{ form.age.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not user %}
+                <!-- Sección de autenticación solo para usuarios nuevos -->
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="bi bi-shield-lock"></i> Acceso al Sistema
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            {{ form.create_auth_user }}
+                            <label class="form-check-label" for="{{ form.create_auth_user.id_for_label }}">
+                                {{ form.create_auth_user.label }}
                             </label>
-                            {{ form.first_name }}
-                            {% if form.first_name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.first_name.errors.0 }}
-                                </div>
-                            {% endif %}
+                            <div class="form-text">{{ form.create_auth_user.help_text }}</div>
                         </div>
 
-                        <!-- Apellido -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                <i class="bi bi-person-badge"></i> {{ form.last_name.label }}
-                                {% if form.last_name.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ form.last_name }}
-                            {% if form.last_name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.last_name.errors.0 }}
+                        <div id="auth-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                                    {{ form.username }}
+                                    <div class="form-text">{{ form.username.help_text }}</div>
+                                    {% if form.username.errors %}
+                                        <div class="text-danger small">{{ form.username.errors.0 }}</div>
+                                    {% endif %}
                                 </div>
-                            {% endif %}
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                                    {{ form.password }}
+                                    {% if form.password.errors %}
+                                        <div class="text-danger small">{{ form.password.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password_confirm.id_for_label }}" class="form-label">{{ form.password_confirm.label }}</label>
+                                    {{ form.password_confirm }}
+                                    {% if form.password_confirm.errors %}
+                                        <div class="text-danger small">{{ form.password_confirm.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+                {% endif %}
 
-                    <div class="row">
-                        <!-- Edad -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.age.id_for_label }}" class="form-label">
-                                <i class="bi bi-calendar-check"></i> {{ form.age.label }}
-                                {% if form.age.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ form.age }}
-                            {% if form.age.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.age.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Email -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                <i class="bi bi-envelope"></i> {{ form.email.label }}
-                                {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.email.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
+                <!-- Errores generales del formulario -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">
+                        {{ form.non_field_errors }}
                     </div>
-
-                    <!-- Errores generales del formulario -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-
-                    <!-- Nota informativa -->
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        Los campos marcados con <span class="text-danger">*</span> son obligatorios.
-                    </div>
-
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i>
-                            {% if user %}Actualizar{% else %}Crear{% endif %} Usuario
-                        </button>
-                    </div>
-                </form>
+                {% endif %}
             </div>
-        </div>
+            <div class="card-footer d-flex justify-content-end gap-2">
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    {% if user %}Actualizar Usuario{% else %}Crear Usuario{% endif %}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createAuthCheckbox = document.getElementById('{{ form.create_auth_user.id_for_label }}');
+    const authFields = document.getElementById('auth-fields');
+
+    function toggleAuthFields() {
+        if (createAuthCheckbox && authFields) {
+            authFields.style.display = createAuthCheckbox.checked ? 'block' : 'none';
+        }
+    }
+
+    if (createAuthCheckbox) {
+        createAuthCheckbox.addEventListener('change', toggleAuthFields);
+        toggleAuthFields(); // Llamar una vez para establecer el estado inicial
+    }
+});
+</script>
 {% endblock %}
