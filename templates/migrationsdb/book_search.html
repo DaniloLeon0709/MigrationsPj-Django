@@ -75,7 +75,7 @@
             {% endif %}
           </div>
           <div class="card-footer bg-white">
-              <a class="btn btn-success w-100" href="{% url 'import_external_book' it.isbn|default:'no-isbn' %}{% if owner_id %}?owner_id={{ owner_id }}{% if it.title %}&title={{ it.title|urlencode }}{% endif %}{% if it.authors %}&author={{ it.authors.0|urlencode }}{% endif %}{% endif %}">
+              <a class="btn btn-success w-100" href="{% url 'import_external_book' it.isbn|default:'no-isbn' %}{% if owner_id %}?owner_id={{ owner_id }}&{% else %}?{% endif %}{% if it.title %}title={{ it.title|urlencode }}{% endif %}{% if it.authors %}{% if it.title %}&{% endif %}author={{ it.authors.0|urlencode }}{% endif %}">
                 <i class="bi bi-download"></i>
                 {% if owner_id %}Agregar a mi biblioteca{% else %}Importar libro{% endif %}
               </a>
