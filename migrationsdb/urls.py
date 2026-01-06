@@ -48,6 +48,6 @@ urlpatterns = [
     # Gestión de permisos (solo para administradores)
     path('users/<int:user_id>/permissions/', views.manage_user_permissions, name='manage_user_permissions'),
 
-# API REST
-# En la sección de URLs existentes, agrega:
-path('api/genres/<int:genre_id>/update/', views.update_genre_api, name='update_genre_api'),]
+    # API REST
+    path('api/genres/<int:genre_id>/update/', views.update_genre_api, name='update_genre_api'),
+]
